@@ -62,12 +62,12 @@ public class MarketSaga {
 
     private void dispatchCommand(Command command) {
         log.info("Sending command {}", command);
-        messageDispatcher.dispatch(command);
+        messageDispatcher.dispatchToMarketQueue(command);
     }
 
     private void dispatchEvent(Event event) {
         log.info("Sending event {}", event);
-        messageDispatcher.dispatch(event);
+        messageDispatcher.dispatchToMarketQueue(event);
     }
 
     public MarketProjection retrieveMarket(UUID id) {

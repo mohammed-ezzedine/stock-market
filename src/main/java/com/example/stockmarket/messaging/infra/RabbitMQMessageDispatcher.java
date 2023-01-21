@@ -14,7 +14,13 @@ public class RabbitMQMessageDispatcher implements MessageDispatcher {
     private final RabbitMQConfig config;
 
     @Override
-    public void dispatch(Object message) {
+    public void dispatchToMarketQueue(Object message) {
         rabbitTemplate.convertAndSend(config.getTopicExchangeName(), config.getMarketRoutingKey(), message);
     }
+
+    @Override
+    public void dispatchToBudgetQueue(Object message) {
+        rabbitTemplate.convertAndSend(config.getTopicExchangeName(), config.getBudgetRoutingKey(), message);
+    }
+
 }

@@ -5,6 +5,9 @@ application:
       market:
         name: market
         routingKey: trade.market.#
+      budget:
+        name: budget
+        routingKey: trade.budget.#
 
 spring:
   data:
