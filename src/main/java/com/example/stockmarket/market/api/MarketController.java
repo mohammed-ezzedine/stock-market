@@ -1,13 +1,20 @@
 package com.example.stockmarket.market.api;
 
+import com.example.stockmarket.market.core.MarketProjection;
 import com.example.stockmarket.market.core.MarketSaga;
+import com.example.stockmarket.market.core.item.Item;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+@Slf4j
 @AllArgsConstructor
 @RestController
 public class MarketController {
@@ -15,7 +22,23 @@ public class MarketController {
 
     @PostMapping("init")
     public ResponseEntity<MarketOpeningResponse> openMarket() {
+        log.info("Received a request to open market");
         UUID marketId = marketSaga.dispatchOpenMarketCommand();
         return ResponseEntity.ok(MarketOpeningResponse.builder().marketId(marketId).build());
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<MarketProjectionApiResponse> getMarket(@PathVariable UUID id) {
+        MarketProjection marketProjection = marketSaga.retrieveMarket(id);
+        return ResponseEntity.ok(mapMarket(marketProjection));
+    }
+
+    private static MarketProjectionApiResponse mapMarket(MarketProjection marketProjection) {
+        return MarketProjectionApiResponse.builder()
+                .items(marketProjection.getItems().stream().map(MarketController::mapItem).collect(Collectors.toList())).build();
+    }
+
+    private static ItemProjectionApiResponse mapItem(Item i) {
+        return ItemProjectionApiResponse.builder().name(i.getName()).price(i.getPrice()).quantity(i.getQuantity()).build();
     }
 }

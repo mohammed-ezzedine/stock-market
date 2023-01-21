@@ -1,18 +1,49 @@
 package com.example.stockmarket.market.core;
 
-import com.example.stockmarket.market.messaging.command.OpenMarketCommand;
+import com.example.stockmarket.market.core.item.Item;
+import com.example.stockmarket.market.messaging.event.MarketOpenedEvent;
+import com.example.stockmarket.market.messaging.event.StockItemRegisteredEvent;
+import com.example.stockmarket.messaging.core.event.Event;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class MarketAggregate {
 
     private UUID id;
 
-    private MarketAggregate(UUID id) {
-        this.id = id;
+    private List<Item> stock;
+
+    public UUID getId() {
+        return id;
     }
 
-    public static MarketAggregate initialize(OpenMarketCommand command) {
-        return new MarketAggregate(command.getMarketId());
+    public List<Item> getStock() {
+        return stock;
+    }
+
+    public MarketAggregate() {
+        this.stock = new ArrayList<>();
+    }
+
+    public void apply(Event event) {
+        if (event instanceof StockItemRegisteredEvent) {
+            apply((StockItemRegisteredEvent) event);
+        } else if (event instanceof MarketOpenedEvent) {
+            apply((MarketOpenedEvent) event);
+        }
+    }
+
+    private void apply(MarketOpenedEvent event) {
+        id = event.getMarketId();
+    }
+
+    private void apply(StockItemRegisteredEvent event) {
+        if (stock.stream().anyMatch(s -> s.getName().equals(event.getItemName()))) {
+            throw new IllegalStateException("Item already registered in stock.");
+        }
+
+        stock.add(Item.builder().name(event.getItemName()).quantity(event.getItemQuantity()).price(event.getItemPrice()).build());
     }
 }

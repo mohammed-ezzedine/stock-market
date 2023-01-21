@@ -1,5 +1,6 @@
 package com.example.stockmarket.messaging.store;
 
+import com.example.stockmarket.messaging.core.event.Event;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -21,5 +22,5 @@ public class EventEntity {
     private long id;
     @Indexed
     private UUID aggregateId;
-    private Object content;
+    private Event content;
 }
