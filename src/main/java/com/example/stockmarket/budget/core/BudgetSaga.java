@@ -4,6 +4,9 @@ import com.example.stockmarket.aggregate.core.AggregateLinkReadService;
 import com.example.stockmarket.aggregate.core.AggregateLinkWriteService;
 import com.example.stockmarket.budget.messaging.command.RegisterBudgetCommand;
 import com.example.stockmarket.budget.messaging.event.BudgetRegisteredEvent;
+import com.example.stockmarket.budget.messaging.event.ItemPurchaseFailedEvent;
+import com.example.stockmarket.budget.messaging.event.ItemPurchaseScheduledEvent;
+import com.example.stockmarket.market.messaging.command.SchedulePurchaseCommand;
 import com.example.stockmarket.market.messaging.event.MarketOpenedEvent;
 import com.example.stockmarket.messaging.core.MessageDispatcher;
 import com.example.stockmarket.messaging.core.command.Command;
@@ -28,6 +31,11 @@ public class BudgetSaga {
     private final AggregateLinkReadService aggregateLinkReadService;
 
     public BudgetProjection getBudgetByMarketId(UUID marketId) {
+        BudgetAggregate budgetAggregate = getAggregate(marketId);
+        return BudgetProjection.builder().budgetId(budgetAggregate.getId()).amount(budgetAggregate.getAmount()).items(budgetAggregate.getItems()).build();
+    }
+
+    private BudgetAggregate getAggregate(UUID marketId) {
         UUID budgetAggregateId = aggregateLinkReadService.getLinkedAggregate(marketId, BudgetAggregate.class.getName());
         log.info("Retrieving budget of id {} for market {}", budgetAggregateId, marketId);
 
@@ -36,7 +44,7 @@ public class BudgetSaga {
         BudgetAggregate budgetAggregate = new BudgetAggregate();
         events.forEach(budgetAggregate::apply);
 
-        return BudgetProjection.builder().budgetId(budgetAggregate.getId()).amount(budgetAggregate.getAmount()).items(budgetAggregate.getItems()).build();
+        return budgetAggregate;
     }
 
     public void on(MarketOpenedEvent event) {
@@ -51,13 +59,23 @@ public class BudgetSaga {
         aggregateLinkWriteService.linkAggregates(command.getMarketId(), budgetId, BudgetAggregate.class.getName());
     }
 
+    public void handle(SchedulePurchaseCommand command) {
+        BudgetAggregate budgetAggregate = getAggregate(command.getMarketId());
+        if (budgetAggregate.getAmount() < command.getQuantity() * command.getItemPrice()) {
+            dispatchEvent(ItemPurchaseFailedEvent.builder().marketId(command.getMarketId()).itemName(command.getItemName()).reason("Not enough budget").build());
+        } else {
+            dispatchEvent(ItemPurchaseScheduledEvent.builder().budgetId(budgetAggregate.getId()).marketId(command.getMarketId())
+                    .itemName(command.getItemName()).quantity(command.getQuantity()).itemPrice(command.getItemPrice()).build());
+        }
+    }
+
     private void dispatchEvent(Event event) {
         log.info("Sending event {}", event);
-        messageDispatcher.dispatchToBudgetQueue(event);
+        messageDispatcher.dispatchToMarketQueue(event);
     }
 
     private void dispatchCommand(Command command) {
         log.info("Sending command {}", command);
-        messageDispatcher.dispatchToBudgetQueue(command);
+        messageDispatcher.dispatchToMarketQueue(command);
     }
 }

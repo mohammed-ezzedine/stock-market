@@ -1,13 +1,9 @@
 application:
   messaging:
     exchange: stock-market
-    queues:
-      market:
-        name: market
-        routingKey: trade.market.#
-      budget:
-        name: budget
-        routingKey: trade.budget.#
+    queue:
+      name: market
+      routingKey: trade.market.#
 
 spring:
   data:

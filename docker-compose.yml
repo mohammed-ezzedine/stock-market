@@ -2,12 +2,14 @@ version: '3.2'
 services:
   rabbitmq:
     image: rabbitmq:3.11.7-management
+    restart: always
     ports:
       - "5672:5672"
       - "15672:15672"
 
   mongo:
     image: bitnami/mongodb:6.0
+    restart: always
     ports:
       - "27017:27017"
     environment:
@@ -19,6 +21,7 @@ services:
 
   mongo-express:
     image: mongo-express
+    restart: always
     ports:
       - "8081:8081"
     environment:

@@ -31,6 +31,12 @@ public class MarketController {
         return ResponseEntity.ok(mapMarket(marketProjection));
     }
 
+    @PostMapping("{marketId}/items/")
+    public ResponseEntity<Void> buyItem(@PathVariable UUID marketId, @RequestBody BuyItemApiRequest request) {
+        marketSaga.initiatePurchase(marketId, request.getItemName(), request.getQuantity());
+        return ResponseEntity.ok().build();
+    }
+
     private static MarketProjectionApiResponse mapMarket(MarketProjection marketProjection) {
         return MarketProjectionApiResponse.builder()
                 .items(marketProjection.getItems().stream().map(MarketController::mapItem).collect(Collectors.toList())).build();

@@ -4,10 +4,15 @@ import com.example.stockmarket.budget.core.BudgetSaga;
 import com.example.stockmarket.budget.messaging.BudgetListener;
 import com.example.stockmarket.budget.messaging.command.RegisterBudgetCommand;
 import com.example.stockmarket.budget.messaging.event.BudgetRegisteredEvent;
+import com.example.stockmarket.budget.messaging.event.ItemPurchaseFailedEvent;
+import com.example.stockmarket.budget.messaging.event.ItemPurchaseScheduledEvent;
 import com.example.stockmarket.market.core.MarketListener;
 import com.example.stockmarket.market.core.MarketSaga;
 import com.example.stockmarket.market.messaging.command.OpenMarketCommand;
 import com.example.stockmarket.market.messaging.command.RegisterStockInMarketCommand;
+import com.example.stockmarket.market.messaging.command.SchedulePurchaseCommand;
+import com.example.stockmarket.market.messaging.event.ItemPriceIncreaseEvent;
+import com.example.stockmarket.market.messaging.event.ItemStockDecreasedEvent;
 import com.example.stockmarket.market.messaging.event.MarketOpenedEvent;
 import com.example.stockmarket.market.messaging.event.StockItemRegisteredEvent;
 import com.example.stockmarket.messaging.core.event.EventWriteService;
@@ -19,7 +24,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RabbitListener(queues = {"#{'${application.messaging.queues.market.name}'}", "#{'${application.messaging.queues.budget.name}'}"})
+@RabbitListener(queues = "#{'${application.messaging.queue.name}'}")
 @AllArgsConstructor
 public class RabbitMQListener implements MarketListener, BudgetListener {
     private final EventWriteService eventWriteService;
@@ -40,6 +45,18 @@ public class RabbitMQListener implements MarketListener, BudgetListener {
 
     @Override
     @RabbitHandler
+    public void handle(RegisterBudgetCommand command) {
+        budgetSaga.handle(command);
+    }
+
+    @Override
+    @RabbitHandler
+    public void handle(SchedulePurchaseCommand command) {
+        budgetSaga.handle(command);
+    }
+
+    @Override
+    @RabbitHandler
     public void on(MarketOpenedEvent event) {
         eventWriteService.persist(event);
         marketSaga.on(event);
@@ -54,8 +71,28 @@ public class RabbitMQListener implements MarketListener, BudgetListener {
 
     @Override
     @RabbitHandler
-    public void handle(RegisterBudgetCommand command) {
-        budgetSaga.handle(command);
+    public void on(ItemPurchaseScheduledEvent event) {
+        eventWriteService.persist(event);
+        marketSaga.on(event);
+    }
+
+    @Override
+    @RabbitHandler
+    public void on(ItemPurchaseFailedEvent event) {
+        eventWriteService.persist(event);
+        marketSaga.on(event);
+    }
+
+    @Override
+    @RabbitHandler
+    public void on(ItemStockDecreasedEvent event) {
+        eventWriteService.persist(event);
+    }
+
+    @Override
+    @RabbitHandler
+    public void on(ItemPriceIncreaseEvent event) {
+        eventWriteService.persist(event);
     }
 
     @Override
