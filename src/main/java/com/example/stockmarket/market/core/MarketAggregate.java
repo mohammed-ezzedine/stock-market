@@ -1,10 +1,7 @@
 package com.example.stockmarket.market.core;
 
 import com.example.stockmarket.market.core.item.Item;
-import com.example.stockmarket.market.messaging.event.ItemPriceIncreaseEvent;
-import com.example.stockmarket.market.messaging.event.ItemStockDecreasedEvent;
-import com.example.stockmarket.market.messaging.event.MarketOpenedEvent;
-import com.example.stockmarket.market.messaging.event.StockItemRegisteredEvent;
+import com.example.stockmarket.market.messaging.event.*;
 import com.example.stockmarket.messaging.core.event.Event;
 
 import java.util.ArrayList;
@@ -38,6 +35,10 @@ public class MarketAggregate {
             apply((ItemStockDecreasedEvent) event);
         } else if (event instanceof ItemPriceIncreaseEvent) {
             apply((ItemPriceIncreaseEvent) event);
+        } else if (event instanceof ItemStockIncreasedEvent) {
+            apply((ItemStockIncreasedEvent) event);
+        } else if (event instanceof ItemPriceDecreaseEvent) {
+            apply((ItemPriceDecreaseEvent) event);
         }
     }
 
@@ -65,5 +66,19 @@ public class MarketAggregate {
                 .orElseThrow(() -> new IllegalStateException(String.format("Item %s did not exist in stock", event.getItemName())));
 
         item.setPrice(item.getPrice() + event.getIncreaseValue());
+    }
+
+    private void apply(ItemStockIncreasedEvent event) {
+        Item item = stock.stream().filter(i -> i.getName().equals(event.getItemName())).findAny()
+                .orElseThrow(() -> new IllegalStateException(String.format("Item %s did not exist in stock", event.getItemName())));
+
+        item.setQuantity(item.getQuantity() + event.getQuantity());
+    }
+
+    private void apply(ItemPriceDecreaseEvent event) {
+        Item item = stock.stream().filter(i -> i.getName().equals(event.getItemName())).findAny()
+                .orElseThrow(() -> new IllegalStateException(String.format("Item %s did not exist in stock", event.getItemName())));
+
+        item.setPrice(item.getPrice() - event.getIncreaseValue());
     }
 }

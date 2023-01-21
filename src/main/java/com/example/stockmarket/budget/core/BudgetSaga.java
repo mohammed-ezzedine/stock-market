@@ -6,6 +6,9 @@ import com.example.stockmarket.budget.messaging.command.RegisterBudgetCommand;
 import com.example.stockmarket.budget.messaging.event.BudgetRegisteredEvent;
 import com.example.stockmarket.budget.messaging.event.ItemPurchaseFailedEvent;
 import com.example.stockmarket.budget.messaging.event.ItemPurchaseScheduledEvent;
+import com.example.stockmarket.budget.messaging.event.ItemSaleScheduledEvent;
+import com.example.stockmarket.market.messaging.ItemSaleFailedEvent;
+import com.example.stockmarket.market.messaging.command.ScheduleItemSaleCommand;
 import com.example.stockmarket.market.messaging.command.SchedulePurchaseCommand;
 import com.example.stockmarket.market.messaging.event.MarketOpenedEvent;
 import com.example.stockmarket.messaging.core.MessageDispatcher;
@@ -17,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -66,6 +70,21 @@ public class BudgetSaga {
         } else {
             dispatchEvent(ItemPurchaseScheduledEvent.builder().budgetId(budgetAggregate.getId()).marketId(command.getMarketId())
                     .itemName(command.getItemName()).quantity(command.getQuantity()).itemPrice(command.getItemPrice()).build());
+        }
+    }
+
+    public void handle(ScheduleItemSaleCommand command) {
+        BudgetAggregate budgetAggregate = getAggregate(command.getMarketId());
+        Optional<OwnedItem> ownedItem = budgetAggregate.getItems().stream().filter(i -> i.getName().equals(command.getItemName())).findAny();
+
+        if (ownedItem.isEmpty()) {
+            dispatchEvent(ItemSaleFailedEvent.builder().marketId(command.getMarketId()).itemName(command.getItemName()).reason("Item is not owned by the user").build());
+        } else {
+            if (ownedItem.get().getQuantity() < command.getQuantity()) {
+                dispatchEvent(ItemSaleFailedEvent.builder().marketId(command.getMarketId()).itemName(command.getItemName()).reason("Item quantity owned by the user is not enough for this sale.").build());
+            } else {
+                dispatchEvent(ItemSaleScheduledEvent.builder().budgetId(budgetAggregate.getId()).marketId(command.getMarketId()).itemName(command.getItemName()).itemPrice(command.getItemPrice()).quantity(command.getQuantity()).build());
+            }
         }
     }
 

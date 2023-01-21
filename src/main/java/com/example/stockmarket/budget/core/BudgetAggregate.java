@@ -2,6 +2,7 @@ package com.example.stockmarket.budget.core;
 
 import com.example.stockmarket.budget.messaging.event.BudgetRegisteredEvent;
 import com.example.stockmarket.budget.messaging.event.ItemPurchaseScheduledEvent;
+import com.example.stockmarket.budget.messaging.event.ItemSaleScheduledEvent;
 import com.example.stockmarket.messaging.core.event.Event;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,8 @@ public class BudgetAggregate {
             apply((BudgetRegisteredEvent) event);
         } else if (event instanceof ItemPurchaseScheduledEvent) {
             apply((ItemPurchaseScheduledEvent) event);
+        } else if (event instanceof ItemSaleScheduledEvent) {
+            apply((ItemSaleScheduledEvent) event);
         }
     }
 
@@ -40,6 +43,12 @@ public class BudgetAggregate {
     private void apply(ItemPurchaseScheduledEvent event) {
         amount -= event.getItemPrice() * event.getQuantity();
         getItemOwnership(event.getItemName()).ifPresentOrElse(item -> updateItemQuantity(event, item), () -> addItemToOwnership(event));
+    }
+
+    private void apply(ItemSaleScheduledEvent event) {
+        amount += event.getQuantity() * event.getItemPrice();
+        Optional<OwnedItem> itemOwnership = getItemOwnership(event.getItemName());
+        itemOwnership.ifPresent(ownedItem -> ownedItem.setQuantity(ownedItem.getQuantity() - event.getQuantity()));
     }
 
     private void addItemToOwnership(ItemPurchaseScheduledEvent event) {

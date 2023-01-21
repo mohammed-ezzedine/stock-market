@@ -7,7 +7,7 @@ import java.util.Random;
 @Service
 public class ItemPriceChangeGenerator {
 
-    public double generatePriceIncrease(int oldQuantity, int soldQuantity, double originalPrice) {
-        return ((double)soldQuantity / (double)oldQuantity) * originalPrice * new Random().nextDouble();
+    public double generatePriceChange(int oldQuantity, int transactionQuantity, double originalPrice) {
+        return ((double)transactionQuantity / (double)oldQuantity) * originalPrice * new Random().nextDouble();
     }
 }
