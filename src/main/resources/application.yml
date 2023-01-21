@@ -1,0 +1,16 @@
+application:
+  messaging:
+    exchange: stock-market
+    queues:
+      market:
+        name: market
+        routingKey: trade.market.#
+
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: stock_market
+      username: stock_market
+      password: stock_market
