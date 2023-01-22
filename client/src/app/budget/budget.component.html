@@ -1,0 +1,25 @@
+<div nz-row nzGutter="20">
+  <nz-statistic [nzValue]="(budget | number)!" [nzTitle]="'Budget (USD)'" nzPrefix="$" nz-col [nzSpan]="6"></nz-statistic>
+
+  <nz-table #basicTable [nzData]="ownedItems" [nzFrontPagination]="false" nzSize="small" nzBordered nzTitle="Owned Items"  nz-col [nzSpan]="18">
+    <thead>
+    <tr>
+      <th>Name</th>
+      <th>Quantity</th>
+      <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let data of basicTable.data">
+      <td>{{data.name}}</td>
+      <td>{{data.quantity}}</td>
+      <td>
+        <nz-input-number [(ngModel)]="itemsToSell[data.name]" [nzMin]="1" [nzMax]="data.quantity" [nzStep]="1"></nz-input-number>
+        <button nz-button nzType="primary" (click)="sellItem(data.name)" style="margin-left: 20px;">Sell</button>
+      </td>
+    </tr>
+    </tbody>
+  </nz-table>
+
+</div>
+

@@ -1,0 +1,10 @@
+<app-open-market-action *ngIf="!getMarketId()"></app-open-market-action>
+<div class="main" *ngIf="getMarketId()" nz-row nzGutter="30">
+
+  <div nz-col [nzSpan]="12">
+    <h2 nz-typography>Market</h2>
+    <app-market-stock (stateUpdate)="handleStateUpdate()" [state]="state"></app-market-stock>
+    <app-budget (stateUpdate)="handleStateUpdate()" [state]="state"></app-budget>
+  </div>
+
+</div>

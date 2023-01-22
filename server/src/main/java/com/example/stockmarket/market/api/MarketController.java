@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @RestController
 @RequestMapping("market")
+@CrossOrigin
 public class MarketController {
     private final MarketSaga marketSaga;
 
@@ -31,13 +32,13 @@ public class MarketController {
         return ResponseEntity.ok(mapMarket(marketProjection));
     }
 
-    @PostMapping("{marketId}/buy/")
+    @PostMapping("{marketId}/buy")
     public ResponseEntity<Void> buyItem(@PathVariable UUID marketId, @RequestBody BuyItemApiRequest request) {
         marketSaga.initiatePurchase(marketId, request.getItemName(), request.getQuantity());
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("{marketId}/sell/")
+    @PostMapping("{marketId}/sell")
     public ResponseEntity<Void> sellItem(@PathVariable UUID marketId, @RequestBody SellItemApiRequest request) {
         marketSaga.initiateSale(marketId, request.getItemName(), request.getQuantity());
         return ResponseEntity.ok().build();
